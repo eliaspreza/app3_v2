@@ -2600,13 +2600,31 @@
   },
   "files": {
     "app.R": {
-      "checksum": "c0f12128424df74db8669856b6d3ce91"
+      "checksum": "ce718f9e172d334004517f088c40f2e0"
+    },
+    "bd_convivirSD.csv": {
+      "checksum": "3b879a41dc5f7dba6c5a41da1ccf2368"
     },
     "data/comunidades_opt.rds": {
       "checksum": "f5f3ce51a16d2a1675e07fb534453f17"
     },
+    "data/infra_opt.rds": {
+      "checksum": "6bf30b054d9234a425273d1de3665d17"
+    },
+    "data/marco_opt.rds": {
+      "checksum": "2b7921bcbdde7a075cdc6db0141bcff7"
+    },
+    "data/muestra_opt.rds": {
+      "checksum": "a623967bd64bc9ee97096d9bb4cba4c2"
+    },
     "data/segmentos_opt.rds": {
       "checksum": "b130cc935f40205f37381b9a02f99087"
+    },
+    "Infra_CoorXY.xlsx": {
+      "checksum": "2944e981c9e714c5b47cfbd079bfb23b"
+    },
+    "muestraT_Tratamiento_700_final.csv": {
+      "checksum": "db352343c0c04492a23bc54e302a8952"
     },
     "www/custom.css": {
       "checksum": "36496e3e2ae5489231cbd368ea7eab91"

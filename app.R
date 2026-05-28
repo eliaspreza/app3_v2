@@ -1,6 +1,7 @@
 # app3.R
 # Versión de Máximo Rendimiento y Embalaje Optimizado para Posit Connect Cloud (< 20MB)
 # Carga instantánea (<50ms) y renderizado ultra-rápido de mapas mediante polígonos simplificados
+# Edición premium: Integración de Capa de Infraestructura y Módulos de Muestra & Marco Muestral
 
 library(shiny)
 library(bslib)
@@ -12,9 +13,12 @@ library(dplyr)
 
 cat("=== Iniciando App3 de Máximo Rendimiento (Carga Instantánea) ===\n")
 
-# 1. Cargar bases de datos optimizadas y simplificadas (¡Solo ~5MB en total!)
+# 1. Cargar bases de datos optimizadas y simplificadas (¡Todo bajo peso!)
 shp_wgs84 <- readRDS("data/segmentos_opt.rds")
 comunidades_joined <- readRDS("data/comunidades_opt.rds")
+infra_data <- readRDS("data/infra_opt.rds")
+muestra_data <- readRDS("data/muestra_opt.rds")
+marco_data <- readRDS("data/marco_opt.rds")
 
 # Obtener listado de departamentos para filtros
 list_deptos <- sort(unique(comunidades_joined$Departamento))
@@ -136,6 +140,36 @@ ui <- bootstrapPage(
               ),
               DT::dataTableOutput("tabla_cruce")
             )
+          ),
+          
+          # Pestaña 3: Muestra
+          tabPanel(
+            title = "Muestra de Tratamiento",
+            div(style = "margin-top:15px;"),
+            div(
+              class = "card",
+              div(
+                style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px;",
+                h4("Muestra Seleccionada (Tratamiento - 700 Participantes)", style = "margin: 0; color:#38bdf8;"),
+                downloadButton("descargar_muestra_csv", "Exportar Muestra (CSV)", class = "btn-secondary-custom")
+              ),
+              DT::dataTableOutput("tabla_muestra")
+            )
+          ),
+          
+          # Pestaña 4: Marco Muestral
+          tabPanel(
+            title = "Marco Muestral",
+            div(style = "margin-top:15px;"),
+            div(
+              class = "card",
+              div(
+                style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px;",
+                h4("Marco de la Población (Convivir - 7,103 Registros)", style = "margin: 0; color:#38bdf8;"),
+                downloadButton("descargar_marco_csv", "Exportar Marco (CSV)", class = "btn-secondary-custom")
+              ),
+              DT::dataTableOutput("tabla_marco")
+            )
           )
         )
       )
@@ -238,6 +272,93 @@ server <- function(input, output, session) {
     }
     
     df_seg
+  })
+  
+  # Infraestructura reactiva filtrada de acuerdo al departamento y municipio seleccionado
+  filtered_infra <- reactive({
+    df <- infra_data
+    
+    if (input$depto != "Todos") {
+      depto_norm_sel <- toupper(input$depto)
+      depto_norm_sel <- gsub("Á", "A", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("É", "E", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Í", "I", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ó", "O", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ú", "U", depto_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Depto_Norm == depto_norm_sel)
+    }
+    
+    if (input$mpio != "Todos" && input$mpio != "") {
+      mpio_norm_sel <- toupper(input$mpio)
+      mpio_norm_sel <- gsub("Á", "A", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("É", "E", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Í", "I", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ó", "O", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ú", "U", mpio_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Mpio_Norm == mpio_norm_sel)
+    }
+    
+    df
+  })
+  
+  # Muestra reactiva filtrada
+  filtered_muestra <- reactive({
+    df <- muestra_data
+    
+    if (input$depto != "Todos") {
+      depto_norm_sel <- toupper(input$depto)
+      depto_norm_sel <- gsub("Á", "A", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("É", "E", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Í", "I", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ó", "O", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ú", "U", depto_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Depto_Norm == depto_norm_sel)
+    }
+    
+    if (input$mpio != "Todos" && input$mpio != "") {
+      mpio_norm_sel <- toupper(input$mpio)
+      mpio_norm_sel <- gsub("Á", "A", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("É", "E", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Í", "I", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ó", "O", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ú", "U", mpio_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Mpio_Norm == mpio_norm_sel)
+    }
+    
+    df
+  })
+  
+  # Marco reactivo filtrado
+  filtered_marco <- reactive({
+    df <- marco_data
+    
+    if (input$depto != "Todos") {
+      depto_norm_sel <- toupper(input$depto)
+      depto_norm_sel <- gsub("Á", "A", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("É", "E", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Í", "I", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ó", "O", depto_norm_sel, fixed = TRUE)
+      depto_norm_sel <- gsub("Ú", "U", depto_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Depto_Norm == depto_norm_sel)
+    }
+    
+    if (input$mpio != "Todos" && input$mpio != "") {
+      mpio_norm_sel <- toupper(input$mpio)
+      mpio_norm_sel <- gsub("Á", "A", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("É", "E", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Í", "I", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ó", "O", mpio_norm_sel, fixed = TRUE)
+      mpio_norm_sel <- gsub("Ú", "U", mpio_norm_sel, fixed = TRUE)
+      
+      df <- df %>% filter(Mpio_Norm == mpio_norm_sel)
+    }
+    
+    df
   })
   
   # === 3. RENDERIZADO DE VALUE BOXES (KPIs) ===
@@ -360,7 +481,7 @@ server <- function(input, output, session) {
     leaflet() %>%
       setView(lng = -88.89653, lat = 13.794185, zoom = 8.5) %>%
       addLayersControl(
-        overlayGroups = c("Segmentos", "Comunidades"),
+        overlayGroups = c("Segmentos", "Comunidades", "Infraestructura"),
         options = layersControlOptions(collapsed = FALSE)
       )
   })
@@ -382,6 +503,7 @@ server <- function(input, output, session) {
     
     segs <- filtered_segs()
     comus <- filtered_comus()
+    infra_sel <- filtered_infra()
     var_mapa <- input$variable_mapa
     
     # 1. Dibujar Polígonos de Segmentos (solo si hay departamento seleccionado)
@@ -479,25 +601,71 @@ server <- function(input, output, session) {
           ),
           group = "Comunidades"
         )
-      
-      # Enfoque e inclinación de cámara inteligente
-      if (input$comunidad != "Todas") {
+    }
+    
+    # 3. Dibujar Puntos de Infraestructura (Nuevos Marcadores Ámbar/Naranja)
+    if (!is.null(infra_sel) && nrow(infra_sel) > 0) {
+      leafletProxy("mapa") %>%
+        addCircleMarkers(
+          data = infra_sel,
+          lng = ~CoordXY,
+          lat = ~CoordX,
+          radius = 8,
+          fillColor = "#fbbf24",
+          fillOpacity = 0.85,
+          color = "#ffffff",
+          weight = 2,
+          opacity = 1.0,
+          label = ~PROYECTO,
+          labelOptions = labelOptions(
+            style = list(
+              "background-color" = "rgba(15,23,42,0.95)",
+              "color" = "#ffffff",
+              "border-color" = "#fbbf24",
+              "font-family" = "Outfit",
+              "font-size" = "12px",
+              "font-weight" = "500",
+              "box-shadow" = "0 5px 15px rgba(0,0,0,0.3)"
+            )
+          ),
+          popup = ~paste0(
+            "<div style=\"font-family: 'Outfit', sans-serif; color: #f1f5f9; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #fbbf24; min-width: 220px;\">",
+            "<h5 style=\"color: #fbbf24; font-weight: 600; margin: 0 0 8px 0; font-size: 1.0rem; border-bottom: 1px solid rgba(251,191,36,0.2); padding-bottom: 5px;\">", PROYECTO, "</h5>",
+            "<b>Distrito:</b> ", DISTRITO, "<br>",
+            "<b>Estado:</b> <span class=\"badge\" style=\"background-color: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 500;\">", ESTADO, "</span><br>",
+            "<b>Espacio Físico:</b> ", EspacioFisico, "<br>",
+            "<b>Servicios:</b> ", ifelse(is.na(Servicios), "No especificado", Servicios), "<br>",
+            "<a href=\"", UBICACION, "\" target=\"_blank\" style=\"margin-top: 8px; display: inline-block; color: #0f172a; background: #fbbf24; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-decoration: none; text-align: center; width: 100%;\">Ver Ubicación (Google Maps)</a>",
+            "</div>"
+          ),
+          group = "Infraestructura"
+        )
+    }
+    
+    # Enfoque e inclinación de cámara inteligente
+    if (input$comunidad != "Todas") {
+      if (nrow(comus) > 0) {
         leafletProxy("mapa") %>%
           setView(lng = comus$lng[1], lat = comus$lat[1], zoom = 14)
-      } else if (input$depto != "Todos") {
+      }
+    } else if (input$depto != "Todos") {
+      if (nrow(comus) > 0) {
         bbox <- st_bbox(comus)
         leafletProxy("mapa") %>%
           fitBounds(lng1 = bbox[["xmin"]], lat1 = bbox[["ymin"]], 
                     lng2 = bbox[["xmax"]], lat2 = bbox[["ymax"]])
-      } else {
+      } else if (!is.null(infra_sel) && nrow(infra_sel) > 0) {
         leafletProxy("mapa") %>%
-          setView(lng = -88.89653, lat = 13.794185, zoom = 8.5)
+          setView(lng = infra_sel$CoordXY[1], lat = infra_sel$CoordX[1], zoom = 11)
       }
+    } else {
+      leafletProxy("mapa") %>%
+        setView(lng = -88.89653, lat = 13.794185, zoom = 8.5)
     }
     
     leafletProxy("mapa") %>%
       addLayersControl(
-        overlayGroups = c("Segmentos", "Comunidades"),
+        overlayGroups = c("Segmentos", "Comunidades", "Infraestructura"),
         options = layersControlOptions(collapsed = FALSE)
       )
   })
@@ -544,6 +712,97 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       write.csv(as.data.frame(filtered_comus()) %>% select(-geometry), file, row.names = FALSE)
+    }
+  )
+  
+  # === 7. RENDERIZADO DE TABLA MUESTRA (DT) ===
+  
+  output$tabla_muestra <- DT::renderDataTable({
+    muestra_sel <- filtered_muestra()
+    
+    df_table <- muestra_sel %>%
+      select(
+        Formulario = Nform,
+        Programa = programa,
+        Municipio = municipio,
+        Comunidad = comunidad,
+        Nombre = nombre,
+        Sexo = sexo_desc,
+        Edad = edad,
+        EdadActual = edad_actual,
+        Telefono = telefono,
+        Anio = anio
+      )
+    
+    DT::datatable(
+      df_table,
+      rownames = FALSE,
+      options = list(
+        pageLength = 10,
+        dom = "lfrtip",
+        language = list(
+          search = "Buscar:",
+          lengthMenu = "Mostrar _MENU_ registros",
+          info = "Mostrando _START_ a _END_ de _TOTAL_ registros",
+          paginate = list(previous = "Anterior", `next` = "Siguiente")
+        )
+      )
+    )
+  })
+  
+  # Exportar muestra en CSV
+  output$descargar_muestra_csv <- downloadHandler(
+    filename = function() {
+      paste0("muestra_tratamiento_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(filtered_muestra() %>% select(-Mpio_Norm, -Depto_Norm, -sexo_desc), file, row.names = FALSE)
+    }
+  )
+  
+  # === 8. RENDERIZADO DE TABLA MARCO MUESTRAL (DT) ===
+  
+  output$tabla_marco <- DT::renderDataTable({
+    marco_sel <- filtered_marco()
+    
+    df_table <- marco_sel %>%
+      select(
+        Formulario = Nform,
+        Programa = programa,
+        Municipio = municipio,
+        Comunidad = comunidad,
+        Nombre = nombre,
+        Sexo = sexo_desc,
+        Edad = edad,
+        EdadActual = edad_actual,
+        Telefono = telefono,
+        P_Programa = p_programa,
+        Anio = anio
+      )
+    
+    DT::datatable(
+      df_table,
+      rownames = FALSE,
+      options = list(
+        pageLength = 10,
+        dom = "lfrtip",
+        language = list(
+          search = "Buscar:",
+          lengthMenu = "Mostrar _MENU_ registros",
+          info = "Mostrando _START_ a _END_ de _TOTAL_ registros",
+          paginate = list(previous = "Anterior", `next` = "Siguiente")
+        )
+      )
+    )
+  })
+  
+  # Exportar marco en CSV
+  output$descargar_marco_csv <- downloadHandler(
+    filename = function() {
+      paste0("marco_poblacion_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(filtered_marco() %>% select(-Mpio_Norm, -Depto_Norm, -sexo_desc), file, row.names = FALSE)
     }
   )
 }
